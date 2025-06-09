@@ -47,7 +47,7 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: latest
-          args: --out-format=colored-line-number --timeout=5m
+          args: --timeout=5m
       - name: Build application
         run: |
           go build -ldflags="-X main.Version=test -X main.Commit=${{ github.sha }} -X main.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" -o aeron-imgman .
