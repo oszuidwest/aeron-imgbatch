@@ -99,7 +99,6 @@ func (s *APIServer) Start(port string) error {
 }
 
 func (s *APIServer) handleHealth(w http.ResponseWriter, r *http.Request) {
-
 	s.sendSuccess(w, map[string]string{
 		"status":   "healthy",
 		"version":  Version,
@@ -126,7 +125,6 @@ func (s *APIServer) handleArtists(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *APIServer) handleArtistUpload(w http.ResponseWriter, r *http.Request) {
-
 	var req ImageUploadRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		s.sendError(w, "Invalid request body", StatusBadRequest)
@@ -188,7 +186,6 @@ func (s *APIServer) handleTracks(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *APIServer) handleTrackUpload(w http.ResponseWriter, r *http.Request) {
-
 	var req ImageUploadRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		s.sendError(w, "Invalid request body", StatusBadRequest)
@@ -233,7 +230,6 @@ func (s *APIServer) handleTrackUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *APIServer) handleArtistNuke(w http.ResponseWriter, r *http.Request) {
-
 	if r.Header.Get("X-Confirm-Nuke") != "VERWIJDER ALLES" {
 		s.sendError(w, "Missing confirmation header: X-Confirm-Nuke", StatusBadRequest)
 		return
@@ -252,7 +248,6 @@ func (s *APIServer) handleArtistNuke(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *APIServer) handleTrackNuke(w http.ResponseWriter, r *http.Request) {
-
 	if r.Header.Get("X-Confirm-Nuke") != "VERWIJDER ALLES" {
 		s.sendError(w, "Missing confirmation header: X-Confirm-Nuke", StatusBadRequest)
 		return
