@@ -118,17 +118,15 @@ jobs:
             VERSION="v0.0.0-$(git rev-parse --short HEAD)"
           fi
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
-      - name: Download all artifacts
+      - name: Download binary artifacts
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
+          pattern: ${{ env.APP_NAME }}-*
+          merge-multiple: true
       - name: Prepare release assets
         run: |
-          mkdir -p ./release-assets
-          find ./artifacts -name "${{ env.APP_NAME }}-*" -type f | while read file; do
-            cp "$file" ./release-assets/
-          done
-          ls -la ./release-assets/
+          ls -la ./artifacts/
       - name: Generate release notes
         run: "VERSION=\"${{ steps.version.outputs.version }}\"\ncat > RELEASE_NOTES.md << EOF\n## Downloads\n  #magic___^_^___line\nDownload het juiste bestand voor je platform en maak het uitvoerbaar met \\`chmod +x\\`.\n  #magic___^_^___line\n**Linux**: amd64, arm64, armv7  \n**Windows**: amd64, arm64  \n**macOS**: Intel (amd64), Apple Silicon (arm64)\n  #magic___^_^___line\nVoor installatie-instructies en gebruiksvoorbeelden, zie de [README](README.md).\nEOF\n  #magic___^_^___line\n"
       - name: Create Release
@@ -137,7 +135,7 @@ jobs:
           tag_name: ${{ steps.version.outputs.version }}
           name: ${{ steps.version.outputs.version }}
           body_path: RELEASE_NOTES.md
-          files: ./release-assets/*
+          files: ./artifacts/*
           draft: false
           prerelease: false
         env:
