@@ -62,6 +62,8 @@ jobs:
           done
 
           # Database already has mock data loaded from the image
+          # Give it extra time to fully initialize
+          sleep 5
       - name: Create test images
         run: |
           convert -size 100x100 xc:red test_small.png
@@ -83,6 +85,14 @@ jobs:
       - name: Database Test - Verify initial data setup
         run: |
           echo "Test: Controleer database test data"
+          
+          # Check if database initialization completed
+          echo "Checking database initialization status..."
+          docker exec aeron-test-db psql -U aeron -d aeron_db -c "\dt aeron.*" || true
+          
+          # Check for any errors in container logs
+          echo "Recent container logs:"
+          docker logs aeron-test-db 2>&1 | tail -50 | grep -E "(ERROR|FATAL|WARNING)" || true
 
           # Tel alle records
           ARTIST_COUNT=$(docker exec aeron-test-db psql -U aeron -d aeron_db -t -c "SELECT COUNT(*) FROM aeron.artist;" | tr -d ' ')
