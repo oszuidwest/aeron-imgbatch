@@ -4582,3 +4582,13 @@ CREATE INDEX IF NOT EXISTS idx_track_titleid ON aeron.track(titleid);
 CREATE INDEX IF NOT EXISTS idx_playlistitem_blockid ON aeron.playlistitem(blockid);
 CREATE INDEX IF NOT EXISTS idx_playlistitem_titleid ON aeron.playlistitem(titleid);
 CREATE INDEX IF NOT EXISTS idx_playlistitem_startdatetime ON aeron.playlistitem(startdatetime);
+
+
+-- Add test images to some artists and tracks
+UPDATE aeron.artist SET picture = E'\\\\x89504e470d0a1a0a' WHERE artistid IN (
+    SELECT artistid FROM aeron.artist WHERE artist IS NOT NULL ORDER BY RANDOM() LIMIT 50
+);
+
+UPDATE aeron.track SET picture = E'\\\\x89504e470d0a1a0a' WHERE titleid IN (
+    SELECT titleid FROM aeron.track WHERE tracktitle IS NOT NULL ORDER BY RANDOM() LIMIT 50
+);
