@@ -162,8 +162,6 @@ jobs:
               - "test-api-key-12345"
               - "another-test-key-67890"
           EOF
-      - name: CLI Test - Track statistics
-      # API Server Tests
       # API Tests
       - name: Reset database before API tests
         run: ./reset_db.sh
