@@ -223,17 +223,22 @@ jobs:
           fi
       - name: API Test - Artist image upload (URL)
         run: |
-          curl -s -X POST -H 'X-API-Key: test-api-key-12345' http://localhost:8888/api/artists/upload \
+          echo "Test: Artist image upload via URL"
+          RESPONSE=$(curl -s -X POST -H 'X-API-Key: test-api-key-12345' http://localhost:8888/api/artists/upload \
             -H 'Content-Type: application/json' \
-            -d '{"name":"Queen","url":"https://picsum.photos/1500"}' \
-            -m 10 | jq -e '.success == true'
+            -d '{"name":"1 Purple Disco Machine","url":"https://picsum.photos/1500"}' \
+            -m 10)
+          echo "Response: $RESPONSE"
+          echo "$RESPONSE" | jq -e '.success == true' || (echo "Upload failed" && exit 1)
       - name: API Test - Track image upload (base64)
         run: |
+          echo "Test: Track image upload with base64 (too small image)"
           BASE64_IMAGE=$(base64 -w 0 < test_small.png)
-          curl -s -X POST -H 'X-API-Key: test-api-key-12345' http://localhost:8888/api/tracks/upload \
+          RESPONSE=$(curl -s -X POST -H 'X-API-Key: test-api-key-12345' http://localhost:8888/api/tracks/upload \
             -H 'Content-Type: application/json' \
-            -d '{"name":"Bohemian Rhapsody","image":"data:image/png;base64,'$BASE64_IMAGE'"}' | \
-            jq -e '.success == false and (.error | contains("afbeelding te klein"))'
+            -d '{"name":"Als De Eerste Sneeuw Valt","image":"data:image/png;base64,'$BASE64_IMAGE'"}')
+          echo "Response: $RESPONSE"
+          echo "$RESPONSE" | jq -e '.success == false and (.error | contains("afbeelding te klein"))'
       - name: API Test - Bulk delete without confirmation
         run: |
           curl -s -X DELETE -H 'X-API-Key: test-api-key-12345' http://localhost:8888/api/artists/bulk-delete | jq -e '.success == false'
@@ -288,7 +293,7 @@ jobs:
           BASE64_IMAGE=$(base64 -w 0 < test_large.png)
           RESPONSE=$(curl -s -X POST -H 'X-API-Key: test-api-key-12345' http://localhost:8892/api/artists/upload \
             -H 'Content-Type: application/json' \
-            -d '{"name":"OneRepublic","image":"data:image/png;base64,'$BASE64_IMAGE'"}')
+            -d '{"name":"1 BLØF","image":"data:image/png;base64,'$BASE64_IMAGE'"}')
           
           if echo "$RESPONSE" | jq -e '.success == true' > /dev/null; then
             echo "✓ Upload succesvol via API"
@@ -318,17 +323,17 @@ jobs:
           # Upload to multiple endpoints concurrently
           curl -s -X POST -H 'X-API-Key: test-api-key-12345' http://localhost:8893/api/artists/upload \
             -H 'Content-Type: application/json' \
-            -d '{"name":"Maroon 5","url":"https://picsum.photos/1500"}' > result1.json &
+            -d '{"name":"1 Purple Disco Machine","url":"https://picsum.photos/1500"}' > result1.json &
           PID1=$!
           
           curl -s -X POST -H 'X-API-Key: test-api-key-12345' http://localhost:8893/api/artists/upload \
             -H 'Content-Type: application/json' \
-            -d '{"name":"Ed Sheeran","url":"https://picsum.photos/1500"}' > result2.json &
+            -d '{"name":"1 BLØF","url":"https://picsum.photos/1500"}' > result2.json &
           PID2=$!
           
           curl -s -X POST -H 'X-API-Key: test-api-key-12345' http://localhost:8893/api/tracks/upload \
             -H 'Content-Type: application/json' \
-            -d '{"name":"Sugar","url":"https://picsum.photos/1500"}' > result3.json &
+            -d '{"name":"Als De Eerste Sneeuw Valt","url":"https://picsum.photos/1500"}' > result3.json &
           PID3=$!
           
           if wait $PID1 && wait $PID2 && wait $PID3; then
