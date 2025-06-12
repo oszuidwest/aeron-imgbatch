@@ -373,9 +373,10 @@ jobs:
           echo "Test: Artist afbeelding ophalen"
           ARTIST_ID="add55a6e-2068-4114-b82a-e0729881f0be"  # BLØF met afbeelding van vorige test
 
-          RESPONSE=$(curl -s -w "\n%{http_code}" -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/artists/$ARTIST_ID/image")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          CONTENT_TYPE=$(curl -s -I -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/artists/$ARTIST_ID/image" | grep -i content-type | cut -d' ' -f2 | tr -d '\r')
+          # Test met write-out voor headers
+          RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}\nCONTENT_TYPE:%{content_type}" -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/artists/$ARTIST_ID/image" -o /dev/null)
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+          CONTENT_TYPE=$(echo "$RESPONSE" | grep "CONTENT_TYPE:" | cut -d: -f2)
 
           if [ "$HTTP_CODE" = "200" ] && [[ "$CONTENT_TYPE" =~ image/ ]]; then
             echo "✓ Artist afbeelding succesvol opgehaald: $CONTENT_TYPE"
@@ -498,9 +499,10 @@ jobs:
           echo "Test: Track afbeelding ophalen"
           TRACK_ID="772a1271-424b-49b3-823d-534f3170b660"
 
-          RESPONSE=$(curl -s -w "\n%{http_code}" -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/tracks/$TRACK_ID/image")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          CONTENT_TYPE=$(curl -s -I -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/tracks/$TRACK_ID/image" | grep -i content-type | cut -d' ' -f2 | tr -d '\r')
+          # Test met write-out voor headers
+          RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}\nCONTENT_TYPE:%{content_type}" -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/tracks/$TRACK_ID/image" -o /dev/null)
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+          CONTENT_TYPE=$(echo "$RESPONSE" | grep "CONTENT_TYPE:" | cut -d: -f2)
 
           if [ "$HTTP_CODE" = "200" ] && [[ "$CONTENT_TYPE" =~ image/ ]]; then
             echo "✓ Track afbeelding succesvol opgehaald: $CONTENT_TYPE"
