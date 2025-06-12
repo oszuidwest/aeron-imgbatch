@@ -483,26 +483,46 @@ jobs:
 
       - name: API Test - Track image upload
         run: |
-          echo "Test: Track afbeelding uploaden (nieuw endpoint)"
-          TRACK_ID="772a1271-424b-49b3-823d-534f3170b660"
+          echo "Test: Track afbeelding uploaden"
+          TRACK_ID="9fc69ea8-81f4-4122-9a74-87d35a082ecb"  # Queen track
+          
+          # Debug: Check if track exists
+          echo "Checking track in database..."
+          docker exec aeron-test-db psql -U aeron -d aeron_db -c "SELECT titleid, tracktitle, artistid FROM aeron.track WHERE titleid = '$TRACK_ID';" || true
+          
+          # Create base64 image
           BASE64_IMAGE=$(base64 -w 0 < test_large.png)
+          echo "Image base64 length: ${#BASE64_IMAGE}"
 
-          RESPONSE=$(curl -s -X POST -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/tracks/$TRACK_ID/image" \
+          # Upload with full debugging
+          echo "Uploading to /api/tracks/$TRACK_ID/image..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" \
+            -X POST \
+            -H 'X-API-Key: test-api-key-12345' \
             -H 'Content-Type: application/json' \
-            -d "{\"image\":\"data:image/png;base64,$BASE64_IMAGE\"}")
-
-          if echo "$RESPONSE" | jq -e '.success == true' > /dev/null; then
+            "http://localhost:8888/api/tracks/$TRACK_ID/image" \
+            -d "{\"image\":\"data:image/png;base64,$BASE64_IMAGE\"}" \
+            -o response.json)
+          
+          HTTP_STATUS=$(echo "$RESPONSE" | grep "HTTP_STATUS:" | cut -d: -f2)
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response content:"
+          cat response.json || echo "(no response body)"
+          
+          # Check success
+          if [ "$HTTP_STATUS" = "200" ] && jq -e '.success == true' response.json > /dev/null 2>&1; then
             echo "✓ Track afbeelding succesvol geüpload"
           else
-            echo "✗ Track afbeelding upload mislukt:"
-            echo "$RESPONSE" | jq .
+            echo "✗ Track afbeelding upload mislukt"
+            rm -f response.json
             exit 1
           fi
+          rm -f response.json
 
       - name: API Test - Get track image
         run: |
           echo "Test: Track afbeelding ophalen"
-          TRACK_ID="772a1271-424b-49b3-823d-534f3170b660"
+          TRACK_ID="9fc69ea8-81f4-4122-9a74-87d35a082ecb"  # Queen track
 
           # Test met write-out voor headers
           RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}\nCONTENT_TYPE:%{content_type}" -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/tracks/$TRACK_ID/image" -o /dev/null)
@@ -519,7 +539,7 @@ jobs:
       - name: API Test - Delete track image
         run: |
           echo "Test: Track afbeelding verwijderen"
-          TRACK_ID="772a1271-424b-49b3-823d-534f3170b660"
+          TRACK_ID="9fc69ea8-81f4-4122-9a74-87d35a082ecb"  # Queen track
 
           RESPONSE=$(curl -s -X DELETE -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/tracks/$TRACK_ID/image")
 
