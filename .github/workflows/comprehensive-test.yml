@@ -385,21 +385,6 @@ jobs:
             exit 1
           fi
 
-      - name: API Test - Get artist image (no image)
-        run: |
-          echo "Test: Artist zonder afbeelding moet 404 geven"
-          # Zoek een artist zonder afbeelding
-          ARTIST_ID=$(docker exec aeron-test-db psql -U aeron -d aeron_db -t -c "SELECT artistid FROM aeron.artist WHERE picture IS NULL LIMIT 1;" | tr -d ' ')
-          RESPONSE=$(curl -s -w "\n%{http_code}" -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/artists/$ARTIST_ID/image")
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-
-          if [ "$HTTP_CODE" = "404" ]; then
-            echo "✓ Artist zonder afbeelding geeft correct 404 terug"
-          else
-            echo "✗ Verwacht: 404, gekregen: $HTTP_CODE"
-            exit 1
-          fi
-
       - name: API Test - Delete artist image
         run: |
           echo "Test: Artist afbeelding verwijderen"
@@ -414,6 +399,36 @@ jobs:
             echo "$RESPONSE" | jq .
             exit 1
           fi
+
+      - name: API Test - Get artist image (no image)
+        run: |
+          echo "Test: Artist zonder afbeelding moet 404 geven"
+          # Test met de BLØF artist waarvan we net de afbeelding hebben verwijderd
+          ARTIST_ID="add55a6e-2068-4114-b82a-e0729881f0be"  # BLØF
+          
+          # Verifieer dat de artist bestaat maar geen afbeelding heeft
+          VERIFY=$(docker exec aeron-test-db psql -U aeron -d aeron_db -t -c "SELECT artistid, picture IS NULL as no_image FROM aeron.artist WHERE artistid = '$ARTIST_ID';" 2>&1)
+          echo "Database check: $VERIFY"
+          
+          # Test de API endpoint
+          RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -H 'X-API-Key: test-api-key-12345' "http://localhost:8888/api/artists/$ARTIST_ID/image" -o response_body.txt)
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+          
+          echo "HTTP Response Code: $HTTP_CODE"
+          
+          if [ "$HTTP_CODE" = "404" ]; then
+            echo "✓ Artist zonder afbeelding geeft correct 404 terug"
+          else
+            echo "✗ Verwacht: 404, gekregen: $HTTP_CODE"
+            echo "Response body:"
+            cat response_body.txt
+            # Extra debug info
+            echo "Controleer of artist bestaat:"
+            docker exec aeron-test-db psql -U aeron -d aeron_db -c "SELECT artistid, artist, picture IS NULL as no_picture FROM aeron.artist WHERE artistid = '$ARTIST_ID';"
+            rm -f response_body.txt
+            exit 1
+          fi
+          rm -f response_body.txt
 
       - name: API Test - Bulk delete without confirmation
         run: |
