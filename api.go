@@ -259,7 +259,8 @@ func (s *AeronAPI) errorCode(err error) int {
 	errorMsg := err.Error()
 
 	// 404 Not Found errors
-	if strings.Contains(errorMsg, ErrSuffixNotExists) {
+	if strings.Contains(errorMsg, ErrSuffixNotExists) ||
+		strings.Contains(errorMsg, "heeft geen afbeelding") {
 		return http.StatusNotFound
 	}
 
