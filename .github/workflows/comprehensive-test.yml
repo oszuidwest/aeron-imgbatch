@@ -481,17 +481,7 @@ jobs:
             exit 1
           fi
 
-      - name: API Test - Track image upload (old endpoint)
-        run: |
-          echo "Test: Track afbeelding upload via oude endpoint (te kleine afbeelding)"
-          BASE64_IMAGE=$(base64 -w 0 < test_small.png)
-          RESPONSE=$(curl -s -X POST -H 'X-API-Key: test-api-key-12345' http://localhost:8888/api/tracks/upload \
-            -H 'Content-Type: application/json' \
-            -d '{"name":"Als De Eerste Sneeuw Valt","image":"data:image/png;base64,'$BASE64_IMAGE'"}')
-          echo "Response: $RESPONSE"
-          echo "$RESPONSE" | jq -e '.success == false and (.error | contains("afbeelding te klein"))'
-
-      - name: API Test - Track image upload (new endpoint)
+      - name: API Test - Track image upload
         run: |
           echo "Test: Track afbeelding uploaden (nieuw endpoint)"
           TRACK_ID="772a1271-424b-49b3-823d-534f3170b660"
@@ -620,9 +610,11 @@ jobs:
             -d '{"url":"https://picsum.photos/1500"}' > result2.json &
           PID2=$!
 
-          curl -s -X POST -H 'X-API-Key: test-api-key-12345' http://localhost:8893/api/tracks/upload \
+          # Gebruik een bekende track ID voor het nieuwe endpoint
+          TRACK_ID="9fc69ea8-81f4-4122-9a74-87d35a082ecb"  # Queen track
+          curl -s -X POST -H 'X-API-Key: test-api-key-12345' "http://localhost:8893/api/tracks/${TRACK_ID}/image" \
             -H 'Content-Type: application/json' \
-            -d '{"name":"Als De Eerste Sneeuw Valt","url":"https://picsum.photos/1500"}' > result3.json &
+            -d '{"url":"https://picsum.photos/1500"}' > result3.json &
           PID3=$!
 
           if wait $PID1 && wait $PID2 && wait $PID3; then
