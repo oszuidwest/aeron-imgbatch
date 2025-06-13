@@ -82,7 +82,7 @@ type TrackDetails struct {
 	Title       string `db:"tracktitle" json:"tracktitle"`
 	Artist      string `db:"artist" json:"artist"`
 	ArtistID    string `db:"artistid" json:"artistid"`
-	Year        string `db:"year" json:"year"`
+	Year        int    `db:"year" json:"year"`
 	KnownLength int    `db:"knownlength" json:"knownlength"`
 	IntroTime   int    `db:"introtime" json:"introtime"`
 	OutroTime   int    `db:"outrotime" json:"outrotime"`
@@ -420,7 +420,7 @@ const getTrackDetailsQuery = `
 		COALESCE(tracktitle, '') as tracktitle,
 		COALESCE(artist, '') as artist,
 		COALESCE(artistid, '00000000-0000-0000-0000-000000000000') as artistid,
-		COALESCE("Year", '') as year,
+		COALESCE("Year", 0) as year,
 		COALESCE(knownlength, 0) as knownlength,
 		COALESCE(introtime, 0) as introtime,
 		COALESCE(outrotime, 0) as outrotime,
